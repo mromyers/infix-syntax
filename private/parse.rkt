@@ -82,10 +82,13 @@
         (let* ([rs (car in)][rv (lookup-syntax rs tbl)])
           (if (and l (stop? rs rv)) (values l in)
               (let-values ([(l+ out)(infix-app rv l in)])
-                (when (eq? in out) (bad))
+                (when (eq? in out) (bad rs))
                 (parse l+ out)))))))
 
-(define (bad)(raise-syntax-error "No."))
+(define (bad s)
+  (raise-syntax-error
+   (format "Infinite loop: blame ~a.\n"
+           (syntax->datum s))))
 
 
 ;; Nicer interface
