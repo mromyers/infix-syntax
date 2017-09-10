@@ -4,7 +4,7 @@
          infix-precedence?
          infix-precedence
 
-         cmp->stop
+         compare-precedence cmp->stop
          infix-parse/cmp
 
          (rename-out [infix-precedence? infix-prec?]
@@ -24,18 +24,21 @@
 
 (define (infix-precedence v)
   (if (infix-precedence? v)
-      ((infix-precedence v) v) #f))
+      ((infix-precedence-ref v) v) #f))
 
-(define (compare-prec v R m)
+(define (compare-precedence v R m)
   (and v (infix-precedence? v)
        (let ([n ((infix-precedence-ref v) v)])
          (if (boolean? n) n
              (n . R . m)))))
 
 (define ((cmp->stop R m) s v)
-  (compare-prec v R m))
+  (compare-precedence v R m))
 
 (define infix-parse/cmp
   (case-lambda
     [(e in R m) (infix-parse  e in (cmp->stop R m))]
     [(  in R m) (infix-parse #f in (cmp->stop R m))]))
+
+
+
