@@ -4,11 +4,9 @@
          infix-precedence?
          infix-precedence
 
-         compare-precedence cmp->stop
-         infix-parse/cmp
+         infix-parse/cmp cmp-prec
 
-         (rename-out [infix-precedence? infix-prec?]
-                     [infix-precedence  infix-prec ]))
+         (rename-out [infix-precedence   infix-prec]))
 
 
 (define-values [prop:infix-precedence
@@ -26,19 +24,19 @@
   (if (infix-precedence? v)
       ((infix-precedence-ref v) v) #f))
 
-(define (compare-precedence v R m)
-  (and v (infix-precedence? v)
-       (let ([n ((infix-precedence-ref v) v)])
-         (if (boolean? n) n
-             (n . R . m)))))
-
-(define ((cmp->stop R m) s v)
-  (compare-precedence v R m))
+(define cmp-prec
+  (case-lambda
+    [(v R m)
+     (and v (infix-precedence? v)
+          (let ([n ((infix-precedence-ref v) v)])
+            (if (boolean? n) n
+                (n . R . m))))]
+    [(R m)(λ(v)(cmp-prec v R m))]))
 
 (define infix-parse/cmp
   (case-lambda
-    [(e in R m) (infix-parse  e in (cmp->stop R m))]
-    [(  in R m) (infix-parse #f in (cmp->stop R m))]))
+    [(e in R m) (infix-parse  e in (cmp-prec R m))]
+    [(  in R m) (infix-parse #f in (cmp-prec R m))]))
 
 
 

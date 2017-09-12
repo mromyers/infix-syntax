@@ -1,10 +1,11 @@
 #lang racket/base
 (provide prop:infix-procedure infix-token?
-         infix-app
+         infix-app infix-default jx-cons
+
+         infix-local-table infix-local-value
+         infix-lookup-syntax
+         with-infix-binding
          
-         infix-default jx-cons
-         
-         with-infix-binding infix-local-value
          infix-parse infix-parse-all)
 
 
@@ -38,6 +39,7 @@
 
 ;; Local Scope
 (define *infix-local-table* (make-parameter #f))
+(define (infix-local-table)(*infix-local-table*))
 
 (define (infix-lookup id tbl [th (λ() #f)])
   (define o (syntax-e id))
@@ -58,7 +60,7 @@
 
 
 ;; misc syntax stuff
-(define (lookup-syntax s tbl)
+(define (infix-lookup-syntax s [tbl (infix-local-table)])
   (infix-lookup (maybe-delim s) tbl))
 
 (define (maybe-delim s)
@@ -79,11 +81,11 @@
   (define tbl (*infix-local-table*))
   (let parse ([l l][in (stx?-e in₀)])
     (if (null? in) (values l in)
-        (let* ([rs (car in)][rv (lookup-syntax rs tbl)])
-          (if (and l (stop? rs rv)) (values l in)
-              (let-values ([(l+ out)(infix-app rv l in)])
-                (when (eq? in out) (bad rs))
-                (parse l+ out)))))))
+        (let ([v (infix-lookup-syntax (car in) tbl)])
+          (if (and l (stop? v)) (values l in)
+              (let-values ([(e out)(infix-app v l in)])
+                (when (eq? in out) (bad (car in)))
+                (parse e out)))))))
 
 (define (bad s)
   (raise-syntax-error
@@ -103,7 +105,6 @@
 (define infix-parse-all
   ;; Pretend this reads as (infix-parse-all [l #f] in).
   (case-lambda
-    [(e in) (let-values ([(e* out) (infix-parse e in no?)]) e*)]    
-    [(  in) (let-values ([(e* out) (infix-parse   in no?)]) e*)]))
+    [(e in) (let-values ([(e* out) (infix-parse e in (λ(v)#f))]) e*)]    
+    [(  in) (let-values ([(e* out) (infix-parse   in (λ(v)#f))]) e*)]))
 
-(define (no? s v) #f)

@@ -4,20 +4,7 @@
                      infix-syntax))
 
 (provide #%parse quote/infix-parse
-         define-infix define-operator
-         (for-syntax #%app #%datum
-                     infix-app infix-default
-                     jx-cons cmp->stop
-                     with-infix-binding infix-local-value
-                     infix-parse infix-parse/cmp
-                     infix-parse-all
-                     infix-precedence? infix-prec?
-                     infix-precedence  infix-prec
-
-                     make-infix infix-lambda
-                     with-get
-                     left-assoc right-assoc
-                     postfix))
+         define-infix define-operator)
 
 
 (define-syntax (#%parse stx)

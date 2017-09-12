@@ -11,10 +11,8 @@
 
  ;; private/precedence
  prop:infix-precedence
- infix-precedence? infix-prec?
  infix-precedence  infix-prec
- cmp->stop
- infix-parse/cmp)
+ cmp-prec infix-parse/cmp)
 
 
 
