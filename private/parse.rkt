@@ -1,10 +1,9 @@
 #lang racket/base
-(provide prop:infix-procedure infix-token?
+(provide prop:infix-procedure
          infix-app infix-default jx-cons
 
-         infix-local-table infix-local-value
-         infix-lookup-syntax
-         with-infix-binding
+         infix-local-table with-infix-binding
+         infix-local-value infix-lookup-syntax        
          
          infix-parse infix-parse-all)
 

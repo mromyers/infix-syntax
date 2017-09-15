@@ -22,8 +22,8 @@
 
 
 (define-infix (#%jx l in)
-  #:precedence 2
-  (with-get [r (infix-parse/cmp (cdr in) < 3)]
+  #:precedence 9
+  (with-get [r (infix-parse/cmp (cdr in) < 9)]
     #:syntax (l r)
     #'(#%jx l r))
   #:expand

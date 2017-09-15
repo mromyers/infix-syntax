@@ -4,7 +4,7 @@
 
 (provide
  ;; private/parse
- prop:infix-procedure infix-token?
+ prop:infix-procedure
  infix-app infix-default jx-cons
  with-infix-binding infix-local-value
  infix-parse infix-parse-all

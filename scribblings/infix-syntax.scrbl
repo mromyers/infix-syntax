@@ -44,14 +44,14 @@ of that form, to decide how it should be parsed. Thus, the most important
 @defproc[#:link-target? #f
          (infix-parse [l syntax?]
                       [in (listof syntax?)]
-                      [stop? (syntax? any/c -> boolean?)])
+                      [stop? (any/c -> boolean?)])
          (values syntax? (listof syntax?))]{
 ... which repeatedly looks up the procedure @racket[f] associated with the first
 token @racket[t] in @racket[in], and calls @racket[(f l in)] to get a new parsed
 and unparsed bit.
 
 It uses the provided @racket[stop?] function to decide when to finally return,
-applying it to @racket[t] and its compile-time binding.
+applying it to the value of @racket[t].
 
 An @racket[l] value of @racket[#f] is used to indicate that there is no current
 parsed-expression.
@@ -79,7 +79,7 @@ parsed-expression.
 
 @defproc[(infix-parse [l (or/c syntax? #f) #f]
                       [in (listof syntax?)]
-                      [stop? (syntax? any/c -> boolean?)])
+                      [stop? (any/c -> boolean?)])
          (values syntax? (listof syntax?))]{
   
 }
