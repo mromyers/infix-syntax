@@ -51,8 +51,8 @@
 
 (define (add-infix-binding s v)
   (define tbl (*infix-local-table*))
-  (if tbl (hash s v)
-      (hash-set tbl s v)))
+  (if tbl (hash-set tbl s v)
+      (hash s v)))
 
 (define-syntax-rule (with-infix-binding [s v] body ...)
   (parameterize ([*infix-local-table* (add-infix-binding s v)]) body ...))

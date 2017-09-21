@@ -1,7 +1,6 @@
 #lang racket
 (require (for-syntax racket/base
-                     "../private/parse.rkt"
-                     "../private/prec.rkt")
+                     infix-syntax/core)
          rackunit)
 
 (begin-for-syntax
@@ -36,6 +35,12 @@
     (tok (λ(l in)
            (with-syntax ([s s][(l ...)(wrap l)][r (car in)])
              (values #'(s l ... . r) (cdr in)))) n))
+
+  (define (do-a=> l in)
+    (with-infix-binding ['a #f]
+      (let-values ([(r out)(infix-parse/cmp l (cdr in) < 3)])
+        (with-syntax ([r r])
+          (values #'(a=> r) out)))))
 )
 
 (define-syntax-rule (def-op/r s d n)
@@ -57,6 +62,11 @@
 (def-tag #%braces   3 |{}|)
 (def-op/r #%jx l 1)
 
+(define-syntax a=>
+  (tok do-a=> 3))
+(def-op/r a l 1)
+
+
 (define-syntax-rule (check-parsed-equal? (unparsed ...) (parsed ...))
   (check-equal? (qt-p: unparsed ...) (quote (parsed ...))))
 
@@ -72,6 +82,8 @@
 (check-parsed-equal? [ {1}]      (|{}|   1))
 (check-parsed-equal? [f{1}]      (|{}| f 1))
 
+(check-parsed-equal?
+ [a=> a ol3 a] (a=> (ol3 a a)))
 
 ; basic precedence
 (check-parsed-equal?
@@ -119,6 +131,13 @@
  [      f   ol3   g {2}]
  [|{}| (f . ol3 . g) 2 ])
 
+(check-parsed-equal?
+ [  a=> a    ol2   b    a   c ]
+ [((a=> a) . ol2 . b) . a . c ])
+(check-parsed-equal?
+ [ a=>  a   ol3   a   ol1  a 1 ]
+ [(a=> (a . ol3 . a)) . ol1 . (a 1)])
+
 
 ;; go for broke
 (check-parsed-equal?
@@ -152,6 +171,3 @@
 (check-parsed-equal?
  [   1   ol2    2    or3     3     ol1    4   or4    5    ]
  [  (1 . ol2 . (2 .  or3 .   3)) . ol1 . (4 . or4 .  5)   ])
-
-
-
