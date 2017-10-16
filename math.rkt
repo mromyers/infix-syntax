@@ -4,7 +4,6 @@
          (for-syntax racket/base
                      infix-syntax))
 
-
 (define-syntax def-op
   (syntax-rules ()
     [(_ name id prec get)
@@ -23,7 +22,7 @@
 
 (define-infix (#%jx l in)
   #:precedence 9
-  (with-get [r (infix-parse/cmp (cdr in) < 9)]
+  (with-right [r (right-assoc 9 in)]
     #:syntax (l r)
     #'(#%jx l r))
   #:expand

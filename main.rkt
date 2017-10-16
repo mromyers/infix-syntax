@@ -43,6 +43,4 @@
          ;; private/infix
          make-infix infix-lambda
          ;; private/operator
-         with-get
-         make-operator operator-lambda
-         left-assoc right-assoc postfix)
+         make-operator operator-lambda)

@@ -1,11 +1,9 @@
 #lang racket/base
 (require "parse.rkt")
 (provide prop:infix-precedence
-         infix-precedence?
          infix-precedence
-
          infix-parse/cmp cmp-prec
-
+         left-assoc right-assoc
          (rename-out [infix-precedence   infix-prec]))
 
 
@@ -37,6 +35,16 @@
   (case-lambda
     [(e in R m) (infix-parse  e in (cmp-prec R m))]
     [(  in R m) (infix-parse #f in (cmp-prec R m))]))
+
+(define left-assoc
+  (case-lambda
+    [(prec in)(infix-parse/cmp #f (cdr in) <  prec)]
+    [(prec)(λ(in)(left-assoc prec in))]))
+
+(define right-assoc
+  (case-lambda
+    [(prec in)(infix-parse/cmp #f (cdr in) <= prec)]
+    [(prec)(λ(in)(left-assoc prec in))]))
 
 
 

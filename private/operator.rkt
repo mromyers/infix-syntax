@@ -3,44 +3,16 @@
          infix-syntax/core
          "infix.rkt")
 
-(provide with-get
-         make-operator operator-lambda
-         left-assoc right-assoc postfix)
-
-
-(define-syntax (with-stx stx)
-  (define (foo stx)
-    (map (λ(s)(if (identifier? s)(with-syntax ([s s])
-                                   #'[s s])
-                  s))
-         (syntax-e stx)))
-  (syntax-parse stx
-    [(_ (s ...) body ...)
-     (with-syntax ([(s* ...)(foo #'(s ...))])
-       #'(with-syntax (s* ...)
-           body ...))]))
-
-(define-syntax with-get
-  (syntax-rules ()
-    [(_ [r get] com)
-     (let-values ([(r out) get])
-       (values com out))]
-    [(_ [r get]
-        #:syntax (b ...)
-        com)
-     (let-values ([(r out) get])
-       (with-stx (b ...)
-         (values com out)))]))
+(provide make-operator operator-lambda)
 
 ;; Now, let's make some specialized token types for
 ;; the most common cases of custom operators.
-(define (d-ctx id lst)
-  (if (null? lst) id (car lst)))
 
-(define (id+ id lst [ctx (d-ctx id lst)])
-  (datum->syntax ctx (cons id lst)))
+(define (replace id stx)
+  (datum->syntax stx (cons id (cdr (syntax-e stx)))))
 
-
+(define (id-wrap ctx id . args)
+  (datum->syntax ctx (cons id args)))
 
 
 (struct id-unop (id get)
@@ -48,22 +20,18 @@
   (λ(self l in)
     (if l (infix-default l in)
         (let ([id (id-unop-id self)][get (id-unop-get self)])
-          (with-get [es (get in)]
-            (id+ id es)))))
+          (with-right [r (get in)] (id-wrap (car in) id r)))))
   #:property prop:procedure
-  (λ(self stx)
-    (id+ (id-unop-id self) (cdr (syntax-e stx)) stx)))
+  (λ(self stx)(replace (id-unop-id self) stx)))
 
 (struct com-unop (com get)
   #:property prop:infix-procedure
   (λ(self l in)
     (if l (infix-default l in)
         (let ([com (com-unop-com self)][get (com-unop-get self)])
-          (with-get [es (get in)]
-            (com es)))))
+          (with-right [r (get in)] (com r)))))
   #:property prop:procedure
-  (λ(self stx)
-    ((com-unop-com self)(syntax-e stx))))
+  (λ(self stx) ((com-unop-com self)(syntax-e stx))))
 
 (struct id-binop (id get prec)
   #:property prop:infix-procedure
@@ -71,23 +39,22 @@
     (let ([id   (id-binop-id   self)]
           [get  (id-binop-get  self)]
           [prec (id-binop-prec self)])
-      (with-get [rs (get prec in)]
-          (if l (id+ id (cons l rs))
-              (id+ id rs)))))
+      (with-right [r (get prec in)]
+        (if l (id-wrap (car in) id l r)
+            (id-wrap (car in) id r)))))
   #:property prop:procedure
-  (λ(self stx)
-    (id+ (id-binop-id self) (cdr (syntax-e stx)) stx))
+  (λ(self stx)(replace (id-binop-id self) stx))
   #:property prop:infix-precedence
   (struct-field-index prec))
   
 (struct com-binop (com get prec)
   #:property prop:infix-procedure
   (λ(self l in)
-    (let ([com  (com-binop-com   self)]
+    (let ([com  (com-binop-com  self)]
           [get  (com-binop-get  self)]
           [prec (com-binop-prec self)])
-      (with-get [rs (get prec in)]
-        (if l (com l rs) (com rs)))))
+      (with-right [r (get prec in)]
+        (if l (com l r) (com r)))))
   #:property prop:procedure
   (λ(self stx)
     (define lst (syntax-e stx))
@@ -118,23 +85,3 @@
     [(_ (r:id) #:get get:expr
         body ...)
      #'(com-unop (λ(r) body ...) get)]))
-
-
-(define left-assoc
-  (case-lambda
-    [(prec in)
-     (let-values ([(r out)(infix-parse/cmp #f (cdr in) < prec)])
-       (values (list r) out))]
-    [(prec)
-     (λ(in)(right-assoc prec in))]))
-
-(define right-assoc
-  (case-lambda
-    [(prec in)
-     (let-values ([(r out)(infix-parse/cmp #f (cdr in) <= prec)])
-       (values (list r) out))]
-    [(prec)
-     (λ(in)(right-assoc prec in))]))
-
-(define (postfix prec in)
-  (values '() (cdr in)))

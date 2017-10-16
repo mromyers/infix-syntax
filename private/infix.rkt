@@ -20,7 +20,6 @@
 
 (define *none* (gensym))
 (define (none? o) (equal? o *none*))
-(define :arg (case-lambda [() *none*][(x) x]))
 
 (define (:infix proc ex prec)
   (if (none? ex)
@@ -34,8 +33,6 @@
                     #:precedence [prec *none*]
                     #:expand     [ex   *none*])
   (:infix proc ex prec))
-
-
 
 (begin-for-syntax
   (define-splicing-syntax-class prec-opt
@@ -52,12 +49,5 @@
   (syntax-parse stx
     [(_ head:expr prec:prec-opt body:expr ... ex:ex-opt)
      #'(make-infix prec.arg ... (λ head body ...) ex.arg ...)]))
-
-    
-        
-        
-
-
-
 
 
