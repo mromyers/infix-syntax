@@ -7,7 +7,7 @@
 (provide
  ;; private/parse
  prop:infix-procedure
- infix-app infix-default jx-cons
+ infix-app infix-default fn-application-cons
  infix-local-table with-infix-binding
  infix-local-value infix-lookup-syntax
  infix-parse infix-parse-all

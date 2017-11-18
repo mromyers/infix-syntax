@@ -1,10 +1,10 @@
 #lang racket/base
 (provide prop:infix-procedure
-         infix-app infix-default jx-cons
+         infix-app infix-default fn-application-cons
 
          infix-local-table with-infix-binding
-         infix-local-value infix-lookup-syntax        
-         
+         infix-local-value infix-lookup-syntax
+
          infix-parse infix-parse-all)
 
 
@@ -26,14 +26,14 @@
       (infix-default l in)))
 
 (define (infix-default l in)
-  (if l (values l (jx-cons in))
+  (if l (values l (fn-application-cons in))
       (values (car in) (cdr in))))
 
-(define (jx-cons in)
+(define (fn-application-cons in)
   (let ([a (car in)])
-    (if (equal? (syntax-e a) '#%jx)
-        (raise-syntax-error #f "#%jx undefined")
-        (cons (datum->syntax a '#%jx) in))))
+    (if (equal? (syntax-e a) '#%fn-application)
+        (raise-syntax-error #f "#%fn-application undefined")
+        (cons (datum->syntax a '#%fn-application) in))))
 
 
 ;; Local Scope
@@ -64,9 +64,12 @@
 
 (define (maybe-delim s)
   (if (list? (syntax-e s))
-      (datum->syntax
-       s (case (syntax-property s 'paren-shape)
-           [(#f) par][(#\[) brk][(#\{) brc])) s))
+      (datum->syntax s
+                     (case (syntax-property s 'paren-shape)
+                       [(#f) par]
+                       [(#\[) brk]
+                       [(#\{) brc]))
+      s))
 
 (define-values (par brk brc)
   (values '#%parens '#%brackets '#%braces))
@@ -74,17 +77,17 @@
 (define (stx?-e o)
   (if (syntax? o) (syntax-e o) o))
 
-
 ;; Actual Parsing
-(define (do-parse l in₀ stop?)
+(define (do-parse l in* stop?)
   (define tbl (*infix-local-table*))
-  (let parse ([l l][in (stx?-e in₀)])
+  (let parse ([l l][in (stx?-e in*)])
     (if (null? in) (values l in)
-        (let ([v (infix-lookup-syntax (car in) tbl)])
-          (if (and l (stop? v)) (values l in)
-              (let-values ([(e out)(infix-app v l in)])
-                (when (eq? in out) (bad (car in)))
-                (parse e out)))))))
+      (let ([v (infix-lookup-syntax (car in) tbl)])
+        (if (and l (stop? v)) (values l in)
+            (let-values ([(e out) (infix-app v l in)])
+              (when (eq? in out)
+                (bad (car in)))
+              (parse e out)))))))
 
 (define (bad s)
   (raise-syntax-error
@@ -98,12 +101,12 @@
   ;; It should be an optional argument, but it makes more
   ;; sense if it's on the left.
   (case-lambda
-    [(l in stop?)(do-parse  l in stop?)]
-    [(  in stop?)(do-parse #f in stop?)]))
+    [(l in stop?) (do-parse  l in stop?)]
+    [(  in stop?) (do-parse #f in stop?)]))
 
 (define infix-parse-all
   ;; Pretend this reads as (infix-parse-all [l #f] in).
   (case-lambda
-    [(e in) (let-values ([(e* out) (infix-parse e in (λ(v)#f))]) e*)]    
-    [(  in) (let-values ([(e* out) (infix-parse   in (λ(v)#f))]) e*)]))
+    [(e in) (let-values ([(e* out) (infix-parse e in (λ (v) #f))]) e*)]
+    [(  in) (let-values ([(e* out) (infix-parse   in (λ (v) #f))]) e*)]))
 

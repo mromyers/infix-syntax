@@ -60,7 +60,7 @@
 (def-tag #%parens   3 |()|)
 (def-tag #%brackets 3 |[]|)
 (def-tag #%braces   3 |{}|)
-(def-op/r #%jx l 1)
+(def-op/r #%fn-application l 1)
 
 (define-syntax a=>
   (tok do-a=> 3))
@@ -74,7 +74,7 @@
 (check-parsed-equal? [1 ol1  2]   (ol1 1 2))
 (check-parsed-equal? [  ol1  2]   (ol1   2))
 (check-parsed-equal? [1 opf1  ]  (opf1 1  ))
-(check-parsed-equal? [1      2]  (#%jx 1 2))
+(check-parsed-equal? [1      2]  (#%fn-application 1 2))
 (check-parsed-equal? [ (1)]      (|()|   1))
 (check-parsed-equal? [f(1)]      (|()| f 1))
 (check-parsed-equal? [ [1]]      (|[]|   1))
@@ -145,7 +145,7 @@
 
 (check-parsed-equal?
  [1 2 3 4 5 6 7]
- (#%jx (#%jx (#%jx (#%jx (#%jx (#%jx 1 2) 3) 4) 5) 6) 7))
+ (#%fn-application (#%fn-application (#%fn-application (#%fn-application (#%fn-application (#%fn-application 1 2) 3) 4) 5) 6) 7))
 
 (check-parsed-equal?
  [   1   ol1    2    ol1     3     ol1    4    ol1    5   ]
