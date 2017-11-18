@@ -15,9 +15,13 @@
 (def-op add + 4 left-assoc)
 (def-op sub - 4 left-assoc)
 (def-op mul * 5 left-assoc)
-(def-op div / 5 right-assoc)
-
-(def-op eq-op = 1 left-assoc)
+(def-op div / 5 left-assoc)
+(def-op pow expt 6 right-assoc)
+(def-op eq-op = 1 right-assoc)
+(def-op geq-op >= 1 right-assoc)
+(def-op leq-op <= 1 right-assoc)
+(def-op gt-op > 1 right-assoc)
+(def-op le-op < 1 right-assoc)
 
 
 (define-infix (#%jx l in)
@@ -41,6 +45,11 @@
                      [mul *]
                      [sub -]
                      [div /]
+                     [pow ^]
                      [eq-op =]
+                     [geq-op >=]
+                     [leq-op <=]
+                     [gt-op >]
+                     [le-op <]
                      [#%parse $])
          #%jx #%parens)
