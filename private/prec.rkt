@@ -48,12 +48,12 @@
 
 (define left-assoc
   (case-lambda
-    [(prec in)(infix-parse/cmp #f (cdr in) <  prec)]
+    [(prec in)(infix-parse/cmp #f (cdr in) <=  prec)]
     [(prec)(λ(in)(left-assoc prec in))]))
 
 (define right-assoc
   (case-lambda
-    [(prec in)(infix-parse/cmp #f (cdr in) <= prec)]
+    [(prec in)(infix-parse/cmp #f (cdr in) <   prec)]
     [(prec)(λ(in)(left-assoc prec in))]))
 
 
