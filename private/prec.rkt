@@ -36,12 +36,12 @@
     [(e in R m) (infix-parse  e in (cmp-prec R m))]
     [(  in R m) (infix-parse #f in (cmp-prec R m))]))
 
-(define left-assoc
+(define right-assoc
   (case-lambda
     [(prec in)(infix-parse/cmp #f (cdr in) <  prec)]
     [(prec)(λ(in)(left-assoc prec in))]))
 
-(define right-assoc
+(define left-assoc
   (case-lambda
     [(prec in)(infix-parse/cmp #f (cdr in) <= prec)]
     [(prec)(λ(in)(left-assoc prec in))]))
