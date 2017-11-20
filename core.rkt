@@ -15,9 +15,10 @@
  ;; private/precedence
  prop:infix-precedence
  infix-precedence  infix-prec
- cmp-prec infix-parse/cmp
+ infix-parse/cmp     cmp-prec
+ infix-parse-expr
  left-assoc right-assoc
-
+ 
  ;; Here
  with-right)
 
@@ -30,14 +31,9 @@
     [(_ [r get] com)
      #'(let-values ([(r out) get])
          (values com out))]
-    [(_ [r get] #:syntax (b ...)
-        com)
+    [(_ [r get] #:syntax (b ...) com)
      (with-syntax ([(b* ...)(foo #'(b ...))])
        #'(let-values ([(r out) get])
            (with-syntax (b* ...)
              (values com out))))]))
-
-
-
-
 

@@ -8,7 +8,10 @@
 
 
 (define-syntax (#%parse stx)
-  (infix-parse-all (cdr (syntax-e stx))))
+  (let-values ([(e out)(infix-parse-expr (cdr (syntax-e stx)))])
+    (if (null? out) e
+        (with-syntax ([e e][(stuff ...) out])
+          #'(begin e (#%parse stuff ...))))))
 
 (define-syntax (quote/infix-parse stx)
   (with-syntax ([stuff (infix-parse-all (cdr (syntax-e stx)))])
@@ -30,6 +33,4 @@
     [(_ name:id stuff ...)
      #'(define-syntax name
          (make-operator stuff ...))]))
-
-    
 
