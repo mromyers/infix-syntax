@@ -1,11 +1,12 @@
 #lang racket/base
 (require (for-syntax racket/base
                      syntax/parse
-                     infix-syntax/core)
+                     infix-syntax)
          rackunit)
-(provide (all-defined-out))
+(provide (all-defined-out) check-equal?)
+
 (define-syntax (qt-p: stx)
-  (with-syntax ([stx* (infix-parse-all (cdr (syntax-e stx)))])
+  (with-syntax ([stx* (parse-all (cdr (syntax-e stx)))])
     #'(quote stx*)))
 
 (define-syntax-rule (check-parsed-equal? (unparsed ...) (parsed ...))

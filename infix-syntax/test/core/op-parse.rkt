@@ -1,66 +1,40 @@
-#lang racket
-(require (for-syntax racket/base
-                     infix-syntax/core)
-         "private/test.rkt")
-
-;; Note: This file only tests that parsing, as implemented by infix-syntax/core
-;; is working as intended.
-
-;; =SETUP=
+#lang racket/base
+(require "private/macro.rkt")
 (begin-for-syntax
-  ;; Roll our own implementation of infix/operators.
-  (struct tok (proc prec)
-    #:property prop:infix-procedure  0
-    #:property prop:infix-precedence 1)
-  (define (wrap l)(if l (list l) '()))
+  (define (s-get d n)
+    (case d
+      [(l)  (left-assoc n)]
+      [(r)(right-assoc n)]
+      [(pf)     get-none]))
+  
+  (define ((tag-proc t prec) l in)
+    (let* ([  r (syntax-e (car in))]
+           [ lr (if l (cons l r) r)]
+           [slr (datum->syntax #f (cons t lr))])
+      (values slr (cdr in)))))
 
-  (define ((mk-opl-proc s n) l in)
-    (let-values ([(r out)(infix-parse/cmp (cdr in) <= n)])
-      (with-syntax ([s s][(l ...) (wrap l)][r r])
-        (values #'(s l ... r) out))))
-  (define ((mk-opr-proc s n) l in)
-    (let-values ([(r out)(infix-parse/cmp (cdr in) < n)])
-      (with-syntax ([s s][(l ...) (wrap l)][r r])
-        (values #'(s l ... r) out))))
-  (define ((mk-oppf-proc s n) l in)
-    (with-syntax ([s s][(l ...) (wrap l)])
-      (values #'(s l ...) (cdr in))))
+(define-syntax-rule (def-op id d n)
+  (def-tok id #:prec n
+    (op-proc (id-com #'id) (s-get 'd n))))
 
-  (define (mk-op s n d)
-    (tok (case d
-           [(l) (mk-opl-proc  s n)]
-           [(r) (mk-opr-proc  s n)]
-           [(pf)(mk-oppf-proc s n)]) n))
-
-  (define-syntax-rule (op/r s d n)
-    (mk-op #'s n (quote d)))
-
-  (define (tag-op s n)
-    (tok (λ(l in)
-           (with-syntax ([s s][(l ...)(wrap l)][r (car in)])
-             (values #'(s l ... . r) (cdr in)))) n))
-
-  (define (do-a=> l in)
-    (with-infix-binding ['a #f]
-      (let-values ([(r out)(infix-parse/cmp l (cdr in) < 3)])
-        (with-syntax ([r r])
-          (values #'(a=> r) out)))))
-)
-
-;; A tiny version of infix-syntax/define
-(define-syntax-rule (def-op/r s d n)
-  (define-syntax s (mk-op #'s n (quote d))))
-(define-syntax-rule (def-tag s n t)
-  (define-syntax s (tag-op 't n)))
+(define-syntax-rule (def-tag id n t)
+  (def-tok id (tag-proc 't n) #:prec n))
 
 ;; Define a bunch of operators
-(def-op/r ol1 l 1) (def-op/r or1 r 1) (def-op/r opf1 pf 1)
-(def-op/r ol2 l 2) (def-op/r or2 r 2) (def-op/r opf2 pf 2)
-(def-op/r ol3 l 3) (def-op/r or3 r 3) (def-op/r opf3 pf 3)
-(def-op/r ol4 l 4) (def-op/r or4 r 4) (def-op/r opf4 pf 4)
+(def-op ol1 l 1) (def-op or1 r 1) (def-op opf1 pf 1)
+(def-op ol2 l 2) (def-op or2 r 2) (def-op opf2 pf 2)
+(def-op ol3 l 3) (def-op or3 r 3) (def-op opf3 pf 3)
+(def-op ol4 l 4) (def-op or4 r 4) (def-op opf4 pf 4)
 (def-tag #%parens   3 |()|) (def-tag #%brackets 3 |[]|)
-(def-tag #%braces   3 |{}|) (def-op/r #%jx l 1)
-(define-syntax a=> (tok do-a=> 3)) (def-op/r a l 1)
+(def-tag #%braces   3 |{}|) (def-op #%jx l 1)
+ 
+;; Special operator to test binding
+(def-tok a=> #:prec 3
+  (op-proc (λ(o l r)(datum->syntax
+                     o (cons #'a=> (?list r))))
+           (λ(in)(with-infix-binding ['a #f]
+                   (parse-cmp in < 3)))))
+(def-op a l 1)
 
 ;; = BEGIN TESTING =
 
