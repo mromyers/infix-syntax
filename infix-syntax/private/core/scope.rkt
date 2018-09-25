@@ -1,38 +1,42 @@
 #lang racket/base
-(provide infix-local-table
-         infix-lookup-syntax
-         with-infix-binding)
+(provide with-infix-binding infix-lookup)
 
-(define *infix-local-table* (make-parameter #f))
-(define (infix-local-table)(*infix-local-table*))
+;; Local state
+(define *infix-local-table* (hash))
 
-(define (infix-lookup id tbl [th (λ() #f)])
-  (define o (syntax-e id))
-  (if (symbol? o)
-      (if tbl (hash-ref tbl o (λ()(syntax-local-value id th)))
-          (syntax-local-value id th)) (th)))
+(define (bind-in! k v)
+  (set! *infix-local-table*
+        (hash-set *infix-local-table* k v)))
 
-(define (infix-local-value id th)
-  (infix-lookup id (*infix-local-table*) th))
+(define (call-with-bind body k v)
+  (define old *infix-local-table*)
+  (dynamic-wind
+    (λ()(bind-in! k v)) body
+    (λ()(set! *infix-local-table* old))))
 
-(define (add-infix-binding s v)
-  (define tbl (*infix-local-table*))
-  (if tbl (hash-set tbl s v)
-      (hash s v)))
+(define (table-lookup sym th)
+  (hash-ref *infix-local-table* sym th))
 
+;; Sugar
+(define-syntax-rule
+  (with-infix-binding [s v] body ...)
+  (call-with-bind (λ() body ...) s v))
 
-(define-syntax-rule (with-infix-binding [s v] body ...)
-  (parameterize ([*infix-local-table* (add-infix-binding s v)]) body ...))
+(define (infix-lookup stx)  
+  (define o (syntax-e stx))
+  (cond [(symbol? o)(raw-lookup stx o)]
+        [(list? o)
+         (let* ([sym (paren-shape stx)]
+                [stx (datum->syntax stx sym)])
+           (raw-lookup stx sym))]
+        [else #f]))
 
+(define (raw-lookup stx sym)
+  (table-lookup sym (λ()(syntax-local-value
+                         stx (λ() #f)))))
 
-;; misc syntax stuff
-(define (infix-lookup-syntax s [tbl (infix-local-table)])
-  (infix-lookup (maybe-delim s) tbl))
-
-(define (ps-sym s)
-  (case s [(#f) '#%parens][(#\[) '#%brackets][(#\{) '#%braces]))
-
-(define (maybe-delim s)
-  (if (list? (syntax-e s))
-      (datum->syntax
-       s (ps-sym (syntax-property s 'paren-shape))) s))
+(define (paren-shape stx)
+  (case (syntax-property stx 'paren-shape)
+    [(#f)  '#%parens  ]
+    [(#\[) '#%brackets]
+    [(#\{) '#%braces  ]))

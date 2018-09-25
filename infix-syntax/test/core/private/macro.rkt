@@ -7,7 +7,8 @@
                      (all-from-out "stx.rkt"))
          (rename-out [#%parse $]
                      [define-syntax def-stx])
-         #%parse def-tok Q
+         def-tok def-op def-tag
+         #%parse Q
          check-parsed-equal? check-equal?)
 
 (define-syntax (#%parse stx)
@@ -15,6 +16,15 @@
 
 (define-syntax-rule (def-tok id stuff ...)
   (define-syntax id (make-tok stuff ...)))
+
+
+(define-syntax-rule (def-op id d n)
+  (def-tok id #:prec n
+    (op-proc (id-com #'id) (s-get 'd n))))
+(define-syntax-rule (def-tag id n t)
+  (def-tok id (tag-proc 't n) #:prec n))
+
+
 
 (define-syntax (qt-p: stx)
   (with-syntax ([stx* (parse-all (cdr (syntax-e stx)))])

@@ -25,14 +25,14 @@ infix expressions into racket macros and languages.
   Repeatedly applies the infix procedure associated with
   the value @racket[v] of the first element of @racket[in]
   until @racket[(stop? v)] is true and @racket[l] is not
-  @racket[#f], or @racket[in] is @racket['()].         
+  @racket[#f], or @racket[in] is @racket['()].
   
 }
 
 @defproc[(parse-cmp [l  (or/c syntax? #f) #f]
-                          [in (listof syntax?)]
-                          [R  (any/c any/c -> boolean?)]
-                          [m  any/c])
+                    [in (listof syntax?)]
+                    [R  (any/c any/c -> boolean?)]
+                    [m  any/c])
          (values syntax? (listof syntax?))]{
   Repeatedly applies the infix procedure associated with value @racket[v]
   of the first element of @racket[in] until the precedence of @racket[v] is

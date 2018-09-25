@@ -1,14 +1,13 @@
 #lang racket/base
 (require "props.rkt" "scope.rkt")
 
-(provide parse-until parse-cmp 
+(provide parse-until parse-cmp
          parse-next  parse-all)
 
 (define (do-parse l in stop?)
-  (define tbl (infix-local-table))
   (let parse ([l l][in (stx?-e in)])
     (if (null? in) (values l in)
-        (let ([v (infix-lookup-syntax (car in) tbl)])
+        (let ([v (infix-lookup (car in))])
           (if (and l (stop? v)) (values l in)
               (let-values ([(e out)(infix-app v l in)])
                 (parse e out)))))))
@@ -38,3 +37,4 @@
 
 (define (kwd? v)  (equal? #t (infix-precedence v)))
 (define (no? v) #f)
+

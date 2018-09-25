@@ -6,7 +6,8 @@
          split-proc op-proc
          with-right ?list
          id-com id-ex replace-id
-         left-assoc right-assoc get-none)
+         left-assoc right-assoc get-none
+         s-get tag-proc)
 
 (struct tok (proc prec)
   #:property prop:infix-procedure  0
@@ -51,3 +52,15 @@
           [(symbol? stx-e) id])))
 
 (define ((id-ex id) stx) (replace-id id stx))
+
+(define (s-get d n)
+  (case d
+    [(l)  (left-assoc n)]
+    [(r)(right-assoc n)]
+    [(pf)     get-none]))
+  
+(define ((tag-proc t prec) l in)
+  (let* ([  r (syntax-e (car in))]
+         [ lr (if l (cons l r) r)]
+         [slr (datum->syntax #f (cons t lr))])
+    (values slr (cdr in))))

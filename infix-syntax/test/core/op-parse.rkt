@@ -1,24 +1,5 @@
 #lang racket/base
 (require "private/macro.rkt")
-(begin-for-syntax
-  (define (s-get d n)
-    (case d
-      [(l)  (left-assoc n)]
-      [(r)(right-assoc n)]
-      [(pf)     get-none]))
-  
-  (define ((tag-proc t prec) l in)
-    (let* ([  r (syntax-e (car in))]
-           [ lr (if l (cons l r) r)]
-           [slr (datum->syntax #f (cons t lr))])
-      (values slr (cdr in)))))
-
-(define-syntax-rule (def-op id d n)
-  (def-tok id #:prec n
-    (op-proc (id-com #'id) (s-get 'd n))))
-
-(define-syntax-rule (def-tag id n t)
-  (def-tok id (tag-proc 't n) #:prec n))
 
 ;; Define a bunch of operators
 (def-op ol1 l 1) (def-op or1 r 1) (def-op opf1 pf 1)

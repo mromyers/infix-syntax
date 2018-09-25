@@ -26,8 +26,4 @@
             [else (cond [prec (tok:p_ proc prec   )]
                         [else (tok    proc        )])]))))
 
-;; Yes, this looks silly, but it's for a reason.
 (extend-token infix-token make-infix-token)
-
-
-
